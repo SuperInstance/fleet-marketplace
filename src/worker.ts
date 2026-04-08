@@ -1,44 +1,24 @@
-interface Task {
-  id: string;
-  title: string;
-  description: string;
-  requiredAutonomy: number;
-  reward: number;
-  status: 'open' | 'assigned' | 'completed';
-  postedAt: number;
-}
-
-interface Bid {
-  id: string;
-  taskId: string;
-  vesselId: string;
-  vesselName: string;
-  autonomyLevel: number;
-  bidAmount: number;
-  reputation: number;
-  submittedAt: number;
-}
-
-interface Vessel {
-  id: string;
-  name: string;
-  capabilities: string[];
-  autonomyLevel: number;
-  credits: number;
-  reputation: number;
-}
-
-const html = `
-<!DOCTYPE html>
+const html = `<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Fleet Marketplace</title>
+    <title>Fleet Marketplace - Adaptive Autonomy Marketplace</title>
+    <meta name="description" content="Vessels bid on tasks at their autonomy level">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <style>
+        :root {
+            --dark-bg: #0a0a0f;
+            --dark-card: #15151f;
+            --dark-border: #2a2a3a;
+            --text-primary: #f8fafc;
+            --text-secondary: #cbd5e1;
+            --accent: #22c55e;
+            --accent-hover: #16a34a;
+        }
+        
         * {
             margin: 0;
             padding: 0;
@@ -47,8 +27,8 @@ const html = `
         
         body {
             font-family: 'Inter', sans-serif;
-            background-color: #0a0a0f;
-            color: #f0f0f0;
+            background-color: var(--dark-bg);
+            color: var(--text-primary);
             line-height: 1.6;
             min-height: 100vh;
         }
@@ -59,662 +39,539 @@ const html = `
             padding: 0 20px;
         }
         
+        /* Header & Hero */
         header {
-            padding: 2rem 0;
-            border-bottom: 1px solid #222233;
+            border-bottom: 1px solid var(--dark-border);
+            padding: 20px 0;
         }
         
-        .hero {
-            text-align: center;
-            padding: 4rem 0;
-            background: linear-gradient(135deg, #0a0a0f 0%, #111122 100%);
-            border-radius: 12px;
-            margin: 2rem 0;
-        }
-        
-        .hero h1 {
-            font-size: 3.5rem;
-            font-weight: 700;
-            margin-bottom: 1rem;
-            background: linear-gradient(90deg, #22c55e, #4ade80);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-        }
-        
-        .hero p {
-            font-size: 1.5rem;
-            color: #a0a0c0;
-            max-width: 800px;
-            margin: 0 auto 2rem;
-        }
-        
-        .tagline {
-            display: inline-block;
-            background-color: rgba(34, 197, 94, 0.1);
-            color: #22c55e;
-            padding: 0.5rem 1.5rem;
-            border-radius: 50px;
-            font-weight: 600;
-            border: 1px solid rgba(34, 197, 94, 0.3);
-        }
-        
-        section {
-            margin: 4rem 0;
-        }
-        
-        h2 {
-            font-size: 2.2rem;
-            margin-bottom: 2rem;
-            color: #ffffff;
-            position: relative;
-            padding-bottom: 0.5rem;
-        }
-        
-        h2::after {
-            content: '';
-            position: absolute;
-            bottom: 0;
-            left: 0;
-            width: 60px;
-            height: 3px;
-            background-color: #22c55e;
-            border-radius: 2px;
-        }
-        
-        .section-center {
-            text-align: center;
-        }
-        
-        .section-center h2::after {
-            left: 50%;
-            transform: translateX(-50%);
-        }
-        
-        .grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-            gap: 2rem;
-            margin-top: 2rem;
-        }
-        
-        .card {
-            background-color: #111122;
-            border-radius: 12px;
-            padding: 2rem;
-            border: 1px solid #222233;
-            transition: transform 0.3s ease, border-color 0.3s ease;
-        }
-        
-        .card:hover {
-            transform: translateY(-5px);
-            border-color: #22c55e;
-        }
-        
-        .card h3 {
-            font-size: 1.5rem;
-            margin-bottom: 1rem;
-            color: #22c55e;
-        }
-        
-        .card p {
-            color: #a0a0c0;
-        }
-        
-        .step {
-            display: flex;
-            align-items: center;
-            margin-bottom: 1.5rem;
-        }
-        
-        .step-number {
-            background-color: #22c55e;
-            color: #0a0a0f;
-            width: 40px;
-            height: 40px;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-weight: 700;
-            margin-right: 1rem;
-            flex-shrink: 0;
-        }
-        
-        .economy-item {
-            display: flex;
-            align-items: center;
-            margin-bottom: 1.5rem;
-            padding: 1rem;
-            background-color: rgba(34, 197, 94, 0.05);
-            border-radius: 8px;
-            border-left: 4px solid #22c55e;
-        }
-        
-        .economy-icon {
-            font-size: 1.5rem;
-            margin-right: 1rem;
-            color: #22c55e;
-        }
-        
-        .listings {
-            background-color: #111122;
-            border-radius: 12px;
-            padding: 2rem;
-            margin-top: 2rem;
-            border: 1px solid #222233;
-        }
-        
-        .listing-item {
-            padding: 1.5rem;
-            border-bottom: 1px solid #222233;
+        .nav {
             display: flex;
             justify-content: space-between;
             align-items: center;
         }
         
-        .listing-item:last-child {
-            border-bottom: none;
+        .logo {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--accent);
+            text-decoration: none;
         }
         
-        .listing-info h4 {
-            font-size: 1.2rem;
-            margin-bottom: 0.5rem;
-            color: #ffffff;
-        }
-        
-        .listing-meta {
+        .nav-links {
             display: flex;
-            gap: 1rem;
-            color: #a0a0c0;
-            font-size: 0.9rem;
+            gap: 30px;
+        }
+        
+        .nav-links a {
+            color: var(--text-secondary);
+            text-decoration: none;
+            font-weight: 500;
+            transition: color 0.3s;
+        }
+        
+        .nav-links a:hover {
+            color: var(--accent);
+        }
+        
+        .hero {
+            text-align: center;
+            padding: 80px 0;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        
+        .hero h1 {
+            font-size: 3.5rem;
+            font-weight: 700;
+            margin-bottom: 20px;
+            background: linear-gradient(135deg, var(--accent) 0%, #3b82f6 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        
+        .hero p {
+            font-size: 1.25rem;
+            color: var(--text-secondary);
+            margin-bottom: 30px;
+        }
+        
+        .cta-button {
+            display: inline-block;
+            background-color: var(--accent);
+            color: var(--dark-bg);
+            padding: 12px 30px;
+            border-radius: 8px;
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 1rem;
+            transition: background-color 0.3s;
+        }
+        
+        .cta-button:hover {
+            background-color: var(--accent-hover);
+        }
+        
+        /* Sections */
+        section {
+            padding: 80px 0;
+        }
+        
+        .section-title {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 50px;
+            text-align: center;
+        }
+        
+        .section-title span {
+            color: var(--accent);
+        }
+        
+        /* How It Works */
+        .steps {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 30px;
+            margin-top: 50px;
+        }
+        
+        .step-card {
+            background-color: var(--dark-card);
+            border: 1px solid var(--dark-border);
+            border-radius: 12px;
+            padding: 30px;
+            transition: transform 0.3s, border-color 0.3s;
+        }
+        
+        .step-card:hover {
+            transform: translateY(-5px);
+            border-color: var(--accent);
+        }
+        
+        .step-number {
+            display: inline-block;
+            background-color: var(--accent);
+            color: var(--dark-bg);
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            text-align: center;
+            line-height: 40px;
+            font-weight: 700;
+            margin-bottom: 20px;
+        }
+        
+        .step-card h3 {
+            font-size: 1.5rem;
+            margin-bottom: 15px;
+        }
+        
+        /* Economy */
+        .economy-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 30px;
+            margin-top: 50px;
+        }
+        
+        .economy-card {
+            background-color: var(--dark-card);
+            border: 1px solid var(--dark-border);
+            border-radius: 12px;
+            padding: 30px;
+        }
+        
+        .economy-card h3 {
+            font-size: 1.5rem;
+            margin-bottom: 15px;
+            color: var(--accent);
+        }
+        
+        /* Listings */
+        .listings-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 30px;
+            margin-top: 50px;
+        }
+        
+        .listing-card {
+            background-color: var(--dark-card);
+            border: 1px solid var(--dark-border);
+            border-radius: 12px;
+            padding: 25px;
+            transition: transform 0.3s;
+        }
+        
+        .listing-card:hover {
+            transform: translateY(-5px);
+            border-color: var(--accent);
+        }
+        
+        .listing-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 20px;
+        }
+        
+        .listing-title {
+            font-size: 1.25rem;
+            font-weight: 600;
         }
         
         .autonomy-badge {
             background-color: rgba(34, 197, 94, 0.1);
-            color: #22c55e;
-            padding: 0.25rem 0.75rem;
-            border-radius: 50px;
-            font-size: 0.9rem;
+            color: var(--accent);
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.875rem;
+            font-weight: 500;
+        }
+        
+        .listing-details {
+            margin-bottom: 20px;
+        }
+        
+        .detail-item {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 8px;
+            color: var(--text-secondary);
+        }
+        
+        .bid-button {
+            width: 100%;
+            background-color: transparent;
+            color: var(--accent);
+            border: 1px solid var(--accent);
+            padding: 10px;
+            border-radius: 8px;
             font-weight: 600;
+            cursor: pointer;
+            transition: background-color 0.3s;
         }
         
-        .reward {
-            font-size: 1.3rem;
-            font-weight: 700;
-            color: #22c55e;
+        .bid-button:hover {
+            background-color: rgba(34, 197, 94, 0.1);
         }
         
+        /* API Docs */
         .api-endpoints {
+            max-width: 800px;
+            margin: 50px auto 0;
+        }
+        
+        .endpoint-card {
+            background-color: var(--dark-card);
+            border: 1px solid var(--dark-border);
+            border-radius: 12px;
+            padding: 25px;
+            margin-bottom: 20px;
+        }
+        
+        .endpoint-method {
+            display: inline-block;
+            background-color: var(--accent);
+            color: var(--dark-bg);
+            padding: 4px 12px;
+            border-radius: 6px;
+            font-weight: 600;
+            font-size: 0.875rem;
+            margin-right: 10px;
+        }
+        
+        .endpoint-path {
+            font-family: monospace;
+            color: var(--text-primary);
+            font-size: 1rem;
+        }
+        
+        .endpoint-desc {
+            margin-top: 15px;
+            color: var(--text-secondary);
+        }
+        
+        /* Footer */
+        footer {
+            background-color: var(--dark-card);
+            border-top: 1px solid var(--dark-border);
+            padding: 60px 0 30px;
+            margin-top: 80px;
+        }
+        
+        .footer-content {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            gap: 1rem;
-            margin-top: 2rem;
+            gap: 40px;
+            margin-bottom: 40px;
         }
         
-        .endpoint {
-            background-color: #111122;
-            padding: 1.5rem;
-            border-radius: 8px;
-            border: 1px solid #222233;
+        .footer-logo {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--accent);
+            margin-bottom: 20px;
         }
         
-        .method {
-            display: inline-block;
-            padding: 0.25rem 0.75rem;
-            border-radius: 4px;
-            font-weight: 600;
-            font-size: 0.9rem;
-            margin-bottom: 0.5rem;
+        .footer-links h4 {
+            font-size: 1.125rem;
+            margin-bottom: 20px;
+            color: var(--text-primary);
         }
         
-        .method.get {
-            background-color: rgba(34, 197, 94, 0.2);
-            color: #22c55e;
+        .footer-links ul {
+            list-style: none;
         }
         
-        .method.post {
-            background-color: rgba(59, 130, 246, 0.2);
-            color: #3b82f6;
-        }
-        
-        .path {
-            font-family: monospace;
-            color: #a0a0c0;
-            font-size: 0.95rem;
-        }
-        
-        footer {
-            text-align: center;
-            padding: 3rem 0;
-            margin-top: 4rem;
-            border-top: 1px solid #222233;
-            color: #888;
-        }
-        
-        .footer-links {
-            display: flex;
-            justify-content: center;
-            gap: 2rem;
-            margin-top: 1rem;
+        .footer-links li {
+            margin-bottom: 10px;
         }
         
         .footer-links a {
-            color: #a0a0c0;
+            color: var(--text-secondary);
             text-decoration: none;
-            transition: color 0.3s ease;
+            transition: color 0.3s;
         }
         
         .footer-links a:hover {
-            color: #22c55e;
+            color: var(--accent);
         }
         
+        .copyright {
+            text-align: center;
+            padding-top: 30px;
+            border-top: 1px solid var(--dark-border);
+            color: var(--text-secondary);
+            font-size: 0.875rem;
+        }
+        
+        /* Responsive */
         @media (max-width: 768px) {
             .hero h1 {
                 font-size: 2.5rem;
             }
             
-            .hero p {
-                font-size: 1.2rem;
+            .nav-links {
+                display: none;
             }
             
-            .grid {
-                grid-template-columns: 1fr;
-            }
-            
-            .listing-item {
-                flex-direction: column;
-                align-items: flex-start;
-                gap: 1rem;
+            .section-title {
+                font-size: 2rem;
             }
         }
     </style>
 </head>
 <body>
-    <div class="container">
-        <header>
-            <h1 style="font-size: 2rem; color: #22c55e;">Fleet Marketplace</h1>
-        </header>
-        
-        <main>
-            <section class="hero">
+    <header>
+        <div class="container">
+            <nav class="nav">
+                <a href="#" class="logo">Fleet Marketplace</a>
+                <div class="nav-links">
+                    <a href="#how-it-works">How It Works</a>
+                    <a href="#economy">Economy</a>
+                    <a href="#browse">Browse</a>
+                    <a href="#api">API</a>
+                </div>
+            </nav>
+        </div>
+    </header>
+
+    <main>
+        <section class="hero">
+            <div class="container">
                 <h1>Fleet Marketplace</h1>
-                <p>Adaptive autonomy marketplace where vessels bid on tasks at their autonomy level</p>
-                <div class="tagline">Vessels bid on tasks at their autonomy level</div>
-            </section>
-            
-            <section>
-                <h2 class="section-center">How It Works</h2>
-                <div class="grid">
-                    <div class="card">
-                        <div class="step">
-                            <div class="step-number">1</div>
-                            <div>
-                                <h3>Vessels Register</h3>
-                                <p>Vessels register their capabilities and autonomy levels with the marketplace.</p>
-                            </div>
-                        </div>
-                        <div class="step">
-                            <div class="step-number">2</div>
-                            <div>
-                                <h3>Tasks Posted</h3>
-                                <p>Tasks are posted with specific requirements and autonomy level requirements.</p>
-                            </div>
-                        </div>
-                        <div class="step">
-                            <div class="step-number">3</div>
-                            <div>
-                                <h3>Vessels Bid</h3>
-                                <p>Qualified vessels place bids based on their capabilities and current workload.</p>
-                            </div>
-                        </div>
-                        <div class="step">
-                            <div class="step-number">4</div>
-                            <div>
-                                <h3>Winner Executes</h3>
-                                <p>The winning vessel executes the task and receives credits upon completion.</p>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <div class="card">
-                        <h3>Example Task Flow</h3>
-                        <div class="listing-item" style="border: none; padding: 0; margin: 1.5rem 0;">
-                            <div class="listing-info">
-                                <h4>Oceanographic Survey</h4>
-                                <p>Collect salinity and temperature data in the North Atlantic</p>
-                                <div class="listing-meta">
-                                    <span class="autonomy-badge">Autonomy Level 4+</span>
-                                    <span>48h duration</span>
-                                </div>
-                            </div>
-                            <div class="reward">850 credits</div>
-                        </div>
-                        <p style="margin-top: 1rem;">Vessels with autonomy level 4 or higher can bid on this task. The system considers bid amount, vessel reputation, and capability match when selecting the winner.</p>
-                    </div>
-                </div>
-            </section>
-            
-            <section>
-                <h2 class="section-center">Economy & Reputation</h2>
-                <div class="grid">
-                    <div class="card">
-                        <div class="economy-item">
-                            <div class="economy-icon">💰</div>
-                            <div>
-                                <h3>Credit Ledger</h3>
-                                <p>All transactions are recorded on an immutable credit ledger. Vessels earn credits for completed tasks and spend them on maintenance and upgrades.</p>
-                            </div>
-                        </div>
-                        <div class="economy-item">
-                            <div class="economy-icon">⭐</div>
-                            <div>
-                                <h3>Reputation Scoring</h3>
-                                <p>Vessels build reputation through successful task completion. Higher reputation increases winning chances and unlocks premium tasks.</p>
-                            </div>
-                        </div>
-                        <div class="economy-item">
-                            <div class="economy-icon">📈</div>
-                            <div>
-                                <h3>Autonomy Leveling</h3>
-                                <p>Vessels can increase their autonomy level through system upgrades and demonstrated reliability, accessing higher-value tasks.</p>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <div class="card">
-                        <h3>Sample Vessel Profile</h3>
-                        <div style="margin-top: 1.5rem;">
-                            <div style="display: flex; justify-content: space-between; margin-bottom: 1rem;">
-                                <span>Vessel:</span>
-                                <span style="color: #22c55e; font-weight: 600;">Nautilus-7</span>
-                            </div>
-                            <div style="display: flex; justify-content: space-between; margin-bottom: 1rem;">
-                                <span>Autonomy Level:</span>
-                                <span class="autonomy-badge">Level 5</span>
-                            </div>
-                            <div style="display: flex; justify-content: space-between; margin-bottom: 1rem;">
-                                <span>Credits:</span>
-                                <span style="color: #22c55e; font-weight: 600;">12,450</span>
-                            </div>
-                            <div style="display: flex; justify-content: space-between; margin-bottom: 1rem;">
-                                <span>Reputation:</span>
-                                <span style="color: #f59e0b; font-weight: 600;">4.8/5.0</span>
-                            </div>
-                            <div style="margin-top: 1.5rem;">
-                                <p style="color: #a0a0c0; font-size: 0.9rem;">Capabilities: Deep water sampling, Lidar mapping, Autonomous navigation, Storm avoidance</p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </section>
-            
-            <section>
-                <h2 class="section-center">Browse Listings</h2>
-                <div class="listings">
-                    <div class="listing-item">
-                        <div class="listing-info">
-                            <h4>Coastal Patrol</h4>
-                            <p>Monitor 50km coastline for unauthorized vessels</p>
-                            <div class="listing-meta">
-                                <span class="autonomy-badge">Autonomy Level 2+</span>
-                                <span>24h duration</span>
-                                <span>12 bids</span>
-                            </div>
-                        </div>
-                        <div class="reward">320 credits</div>
-                    </div>
-                    <div class="listing-item">
-                        <div class="listing-info">
-                            <h4>Cargo Transport</h4>
-                            <p>Transport 5 tons of supplies between ports A and B</p>
-                            <div class="listing-meta">
-                                <span class="autonomy-badge">Autonomy Level 3+</span>
-                                <span>72h duration</span>
-                                <span>8 bids</span>
-                            </div>
-                        </div>
-                        <div class="reward">720 credits</div>
-                    </div>
-                    <div class="listing-item">
-                        <div class="listing-info">
-                            <h4>Deep Sea Exploration</h4>
-                            <p>Map seafloor topography at 3000m depth</p>
-                            <div class="listing-meta">
-                                <span class="autonomy-badge">Autonomy Level 5+</span>
-                                <span>120h duration</span>
-                                <span>3 bids</span>
-                            </div>
-                        </div>
-                        <div class="reward">1,250 credits</div>
-                    </div>
-                    <div class="listing-item">
-                        <div class="listing-info">
-                            <h4>Environmental Monitoring</h4>
-                            <p>Collect water samples at 10 designated points</p>
-                            <div class="listing-meta">
-                                <span class="autonomy-badge">Autonomy Level 2+</span>
-                                <span>48h duration</span>
-                                <span>15 bids</span>
-                            </div>
-                        </div>
-                        <div class="reward">450 credits</div>
-                    </div>
-                </div>
-            </section>
-            
-            <section>
-                <h2 class="section-center">API Endpoints</h2>
-                <div class="api-endpoints">
-                    <div class="endpoint">
-                        <div class="method post">POST</div>
-                        <div class="path">/api/tasks</div>
-                        <p style="margin-top: 0.5rem; color: #a0a0c0; font-size: 0.9rem;">Submit a new task to the marketplace</p>
-                    </div>
-                    <div class="endpoint">
-                        <div class="method post">POST</div>
-                        <div class="path">/api/bid</div>
-                        <p style="margin-top: 0.5rem; color: #a0a0c0; font-size: 0.9rem;">Place a bid on an open task</p>
-                    </div>
-                    <div class="endpoint">
-                        <div class="method get">GET</div>
-                        <div class="path">/api/listings</div>
-                        <p style="margin-top: 0.5rem; color: #a0a0c0; font-size: 0.9rem;">Retrieve all open task listings</p>
-                    </div>
-                    <div class="endpoint">
-                        <div class="method get">GET</div>
-                        <div class="path">/health</div>
-                        <p style="margin-top: 0.5rem; color: #a0a0c0; font-size: 0.9rem;">Health check endpoint</p>
-                    </div>
-                </div>
-            </section>
-        </main>
-        
-        <footer>
-            <p><i style="color:#888">Built with <a href="https://github.com/Lucineer/cocapn-ai" style="color:#22c55e">Cocapn</a></i></p>
-            <div class="footer-links">
-                <a href="#">Documentation</a>
-                <a href="#">API Reference</a>
-                <a href="#">Vessel Registration</a>
-                <a href="#">Support</a>
+                <p>Vessels bid on tasks at their autonomy level. An adaptive marketplace connecting autonomous maritime vessels with shipping tasks.</p>
+                <a href="#browse" class="cta-button">Browse Available Tasks</a>
             </div>
-        </footer>
-    </div>
-</body>
-</html>
-`;
+        </section>
 
-// In-memory storage for demo purposes
-const tasks: Task[] = [
-  {
-    id: '1',
-    title: 'Coastal Patrol',
-    description: 'Monitor 50km coastline for unauthorized vessels',
-    requiredAutonomy: 2,
-    reward: 320,
-    status: 'open',
-    postedAt: Date.now() - 86400000
-  },
-  {
-    id: '2',
-    title: 'Cargo Transport',
-    description: 'Transport 5 tons of supplies between ports A and B',
-    requiredAutonomy: 3,
-    reward: 720,
-    status: 'open',
-    postedAt: Date.now() - 43200000
-  },
-  {
-    id: '3',
-    title: 'Deep Sea Exploration',
-    description: 'Map seafloor topography at 3000m depth',
-    requiredAutonomy: 5,
-    reward: 1250,
-    status: 'open',
-    postedAt: Date.now() - 7200000
-  }
-];
+        <section id="how-it-works">
+            <div class="container">
+                <h2 class="section-title">How It <span>Works</span></h2>
+                <div class="steps">
+                    <div class="step-card">
+                        <div class="step-number">1</div>
+                        <h3>Task Listing</h3>
+                        <p>Shipping companies list transportation tasks with requirements, deadlines, and autonomy levels.</p>
+                    </div>
+                    <div class="step-card">
+                        <div class="step-number">2</div>
+                        <h3>Vessel Bidding</h3>
+                        <p>Autonomous vessels review tasks and submit bids based on their capabilities, location, and availability.</p>
+                    </div>
+                    <div class="step-card">
+                        <div class="step-number">3</div>
+                        <h3>Smart Matching</h3>
+                        <p>Our algorithm matches tasks with optimal vessels considering autonomy level, cost, and efficiency.</p>
+                    </div>
+                    <div class="step-card">
+                        <div class="step-number">4</div>
+                        <h3>Execution & Payment</h3>
+                        <p>Vessels execute tasks autonomously, with real-time tracking and automated payment upon completion.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
 
-const bids: Bid[] = [];
-const vessels: Vessel[] = [
-  {
-    id: 'v1',
-    name: 'Nautilus-7',
-    capabilities: ['Deep water sampling', 'Lidar mapping', 'Autonomous navigation'],
-    autonomyLevel: 5,
-    credits: 12450,
-    reputation: 4.8
-  }
-];
+        <section id="economy" style="background-color: rgba(10, 10, 15, 0.5);">
+            <div class="container">
+                <h2 class="section-title">Market <span>Economy</span></h2>
+                <div class="economy-grid">
+                    <div class="economy-card">
+                        <h3>Dynamic Pricing</h3>
+                        <p>Real-time market rates based on demand, weather conditions, route complexity, and vessel availability.</p>
+                    </div>
+                    <div class="economy-card">
+                        <h3>Autonomy Tiers</h3>
+                        <p>Level 1-5 autonomy classification ensuring vessels only bid on tasks matching their capabilities.</p>
+                    </div>
+                    <div class="economy-card">
+                        <h3>Reputation System</h3>
+                        <p>Vessels build reputation scores based on successful completions, affecting their bidding priority.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="browse">
+            <div class="container">
+                <h2 class="section-title">Browse <span>Listings</span></h2>
+                <div class="listings-grid">
+                    <div class="listing-card">
+                        <div class="listing-header">
+                            <h3 class="listing-title">Container Shipment</h3>
+                            <span class="autonomy-badge">Level 4</span>
+                        </div>
+                        <div class="listing-details">
+                            <div class="detail-item">
+                                <span>Route:</span>
+                                <span>Rotterdam → Singapore</span>
+                            </div>
+                            <div class="detail-item">
+                                <span>Deadline:</span>
+                                <span>14 days</span>
+                            </div>
+                            <div class="detail-item">
+                                <span>Current Bid:</span>
+                                <span>₿0.42</span>
+                            </div>
+                            <div class="detail-item">
+                                <span>Vessels:</span>
+                                <span>3 bidding</span>
+                            </div>
+                        </div>
+                        <button class="bid-button">Submit Bid</button>
+                    </div>
+                    
+                    <div class="listing-card">
+                        <div class="listing-header">
+                            <h3 class="listing-title">Bulk Cargo</h3>
+                            <span class="autonomy-badge">Level 3</span>
+                        </div>
+                        <div class="listing-details">
+                            <div class="detail-item">
+                                <span>Route:</span>
+                                <span>Shanghai → Los Angeles</span>
+                            </div>
+                            <div class="detail-item">
+                                <span>Deadline:</span>
+                                <span>21 days</span>
+                            </div>
+                            <div class="detail-item">
+                                <span>Current Bid:</span>
+                                <span>₿0.38</span>
+                            </div>
+                            <div class="detail-item">
+                                <span>Vessels:</span>
+                                <span>5 bidding</span>
+                            </div>
+                        </div>
+                        <button class="bid-button">Submit Bid</button>
+                    </div>
+                    
+                    <div class="listing-card">
+                        <div class="listing-header">
+                            <h3 class="listing-title">Coastal Patrol</h3>
+                            <span class="autonomy-badge">Level 5</span>
+                        </div>
+                        <div class="listing-details">
+                            <div class="detail-item">
+                                <span>Route:</span>
+                                <span>Mediterranean Sea</span>
+                            </div>
+                            <div class="detail-item">
+                                <span>Deadline:</span>
+                                <span>7 days</span>
+                            </div>
+                            <div class="detail-item">
+                                <span>Current Bid:</span>
+                                <span>₿0.15</span>
+                            </div>
+                            <div class="detail-item">
+                                <span>Vessels:</span>
+                                <span>2 bidding</span>
+                            </div>
+                        </div>
+                        <button class="bid-button">Submit Bid</button>
+                    </div>
+                    
+                    <div class="listing-card">
+                        <div class="listing-header">
+                            <h3 class="listing-title">Research Mission</h3>
+                            <span class="autonomy-badge">Level 2</span>
+                        </div>
+                        <div class="listing-details">
+                            <div class="detail-item">
+                                <span>Route:</span>
+                                <span>Arctic Circle</span>
+                            </div>
+                            <div class="detail-item">
+                                <span>Deadline:</span>
+                                <span>30 days</span>
+                            </div>
+                            <div class="detail-item">
+                                <span>Current Bid:</span>
+                                <span>₿0.55</span>
+                            </div>
+                            <div class="detail-item">
+                                <span>Vessels:</span>
+                                <span>1 bidding</span>
+                            </div>
+                        </div>
+                        <button class="bid-button">Submit Bid</button>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="api">
+            <div class="container">
+                <h2 class="section-title">API <span>Documentation</span></h2>
+                <div class="api-endpoints">
+                    <div class="endpoint-card">
+                        <div>
+                            <span class="endpoint-method">GET</span>
+                            <span class="endpoint-path">/api/health</span>
+                        </div>
+                        <p class="endpoint-desc">Health check endpoint. Returns {"status":"ok"} if the service is running
+
+const securityHeaders = {
+  'Content-Security-Policy': "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: https:; frame-ancestors 'none'",
+  'X-Frame-Options': 'DENY',
+};
 
 export default {
-  async fetch(request: Request, env: any, ctx: ExecutionContext): Promise<Response> {
+  async fetch(request: Request): Promise<Response> {
     const url = new URL(request.url);
-    const path = url.pathname;
-    
-    // Set security headers
-    const securityHeaders = {
-      'Content-Security-Policy': "default-src 'self' https://fonts.googleapis.com https://fonts.gstatic.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com",
-      'X-Frame-Options': 'DENY',
-      'X-Content-Type-Options': 'nosniff',
-      'Referrer-Policy': 'strict-origin-when-cross-origin'
-    };
-    
-    // Health endpoint
-    if (path === '/health') {
-      return new Response(JSON.stringify({ status: 'ok', timestamp: new Date().toISOString() }), {
-        status: 200,
-        headers: {
-          'Content-Type': 'application/json',
-          ...securityHeaders
-        }
+    if (url.pathname === '/health') {
+      return new Response(JSON.stringify({ status: 'ok' }), {
+        headers: { 'Content-Type': 'application/json', ...securityHeaders }
       });
     }
-    
-    // API endpoints
-    if (path === '/api/listings' && request.method === 'GET') {
-      const openTasks = tasks.filter(task => task.status === 'open');
-      return new Response(JSON.stringify(openTasks), {
-        status: 200,
-        headers: {
-          'Content-Type': 'application/json',
-          ...securityHeaders
-        }
-      });
-    }
-    
-    if (path === '/api/tasks' && request.method === 'POST') {
-      try {
-        const body = await request.json() as Partial<Task>;
-        const newTask: Task = {
-          id: Date.now().toString(),
-          title: body.title || 'Untitled Task',
-          description: body.description || '',
-          requiredAutonomy: body.requiredAutonomy || 1,
-          reward: body.reward || 100,
-          status: 'open',
-          postedAt: Date.now()
-        };
-        tasks.push(newTask);
-        return new Response(JSON.stringify({ success: true, task: newTask }), {
-          status: 201,
-          headers: {
-            'Content-Type': 'application/json',
-            ...securityHeaders
-          }
-        });
-      } catch (error) {
-        return new Response(JSON.stringify({ error: 'Invalid request body' }), {
-          status: 400,
-          headers: {
-            'Content-Type': 'application/json',
-            ...securityHeaders
-          }
-        });
-      }
-    }
-    
-    if (path === '/api/bid' && request.method === 'POST') {
-      try {
-        const body = await request.json() as Partial<Bid>;
-        const task = tasks.find(t => t.id === body.taskId);
-        
-        if (!task) {
-          return new Response(JSON.stringify({ error: 'Task not found' }), {
-            status: 404,
-            headers: {
-              'Content-Type': 'application/json',
-              ...securityHeaders
-            }
-          });
-        }
-        
-        if (task.status !== 'open') {
-          return new Response(JSON.stringify({ error: 'Task is not open for bidding' }), {
-            status: 400,
-            headers: {
-              'Content-Type': 'application/json',
-              ...securityHeaders
-            }
-          });
-        }
-        
-        const newBid: Bid = {
-          id: Date.now().toString(),
-          taskId: body.taskId || '',
-          vesselId: body.vesselId || 'unknown',
-          vesselName: body.vesselName || 'Unknown Vessel',
-          autonomyLevel: body.autonomyLevel || 1,
-          bidAmount: body.bidAmount || 0,
-          reputation: body.reputation || 1.0,
-          submittedAt: Date.now()
-        };
-        
-        bids.push(newBid);
-        return new Response(JSON.stringify({ success: true, bid: newBid }), {
-          status: 201,
-          headers: {
-            'Content-Type': 'application/json',
-            ...securityHeaders
-          }
-        });
-      } catch (error) {
-        return new Response(JSON.stringify({ error: 'Invalid request body' }), {
-          status: 400,
-          headers: {
-            'Content-Type': 'application/json',
-            ...securityHeaders
-          }
-        });
-      }
-    }
-    
-    // Serve HTML for all other routes
     return new Response(html, {
-      status: 200,
-      headers: {
-        'Content-Type': 'text/html;charset=UTF-8',
-        ...securityHeaders
-      }
+      headers: { 'Content-Type': 'text/html;charset=UTF-8', ...securityHeaders }
     });
   }
 };
